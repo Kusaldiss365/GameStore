@@ -19,6 +19,25 @@ FreeToGame API and stores it locally.
 
 ------------------------------------------------------------------------
 
+## Library and Framework Choices
+
+**Microsoft.Data.SqlClient (ADO.NET)**  
+Used to connect to SQL Server and execute parameterized SQL queries. This satisfies the assignment requirement to avoid using an ORM and instead interact with the database using raw SQL commands.
+
+**Swashbuckle.AspNetCore (Swagger / OpenAPI)**  
+Used to automatically generate API documentation and provide an interactive Swagger UI. This allows easy testing and exploration of API endpoints during development.
+
+**HttpClient (Typed HttpClient via Dependency Injection)**  
+Used to communicate with the FreeToGame public API. Registering it as a typed HttpClient allows centralized configuration of the API base URL and timeout, while enabling efficient connection reuse.
+
+**ILogger (ASP.NET Core Logging)**  
+Used to log important application events such as database cache hits/misses, external API calls, HTTP response statuses and records inserted into the database. This improves traceability and debugging.
+
+**Microsoft.AspNetCore.HttpLogging**  
+Used to automatically log HTTP request and response information such as request method, path, status code and duration. This helps monitor API activity during development.
+
+------------------------------------------------------------------------
+
 ## Project Architecture
 
     Controller -> Service -> Repository -> SQL Server
