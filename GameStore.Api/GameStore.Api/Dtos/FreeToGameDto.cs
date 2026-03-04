@@ -20,7 +20,7 @@ namespace GameStore.Api.Dtos
         public string Developer { get; set; } = string.Empty;
 
         [JsonPropertyName("release_date")]
-        public string ReleaseDate { get; set; } = string.Empty;
+        public string? ReleaseDate { get; set; }
 
         [JsonPropertyName("freetogame_profile_url")]
         public string FreeToGameProfileUrl { get; set; } = string.Empty;

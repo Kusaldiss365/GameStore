@@ -1,6 +1,5 @@
 ﻿using GameStore.Api.Models;
 using GameStore.Api.Services;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GameStore.Api.Controllers
@@ -15,18 +14,27 @@ namespace GameStore.Api.Controllers
             _service = service;
         }
 
+
         [HttpGet]
-        public async Task<ActionResult<List<Game>>> GetGames()
+        public async Task<ActionResult<List<Game>>> GetAllGames()
         {
-            var all_games = await _service.GetAllGamesAsync();
-            return Ok(all_games);
+            var allGames = await _service.GetAllGamesAsync();
+            return Ok(allGames);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult> GetGameById(int id) {
 
-            if (id <= 0)
-                return BadRequest("Invalid ID!");
+        [HttpGet("cached")]
+        public async Task<ActionResult<List<Game>>> GetAllCachedGames()
+        {
+            var cachedGames = await _service.GetAllCachedGamesAsync();
+            return Ok(cachedGames);
+        }
+
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<Game>> GetGameById(int id) {
+
+            if (id <= 0) return BadRequest("Invalid ID!");
 
             var game = await _service.GetGameByIdAsync(id);
             if (game == null)
@@ -35,5 +43,20 @@ namespace GameStore.Api.Controllers
             return Ok(game);
         }
 
+
+        [HttpDelete("clear")]
+        public async Task<IActionResult> ClearDatabase()
+        {
+            await _service.ClearDatabaseAsync();
+            return Ok("All games deleted successfully.");
+        }
+
+
+        [HttpGet("test-db")]
+        public async Task<IActionResult> TestDb()
+        {
+            var result = await _service.TestDbAsync();
+            return Ok(result);
+        }
     }
 }
