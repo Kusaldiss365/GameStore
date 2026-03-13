@@ -60,11 +60,9 @@ namespace GameStore.Api.Repositories
                     Publisher = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
                     Developer = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
                     ReleaseDate = reader.IsDBNull(9)
-                    ? null
-                    : DateOnly.FromDateTime(reader.GetDateTime(9)),
-                                FreeToGameProfileUrl = reader.IsDBNull(10)
-                    ? string.Empty
-                    : reader.GetString(10)
+                        ? null : DateOnly.FromDateTime(reader.GetDateTime(9)),
+                    FreeToGameProfileUrl = reader.IsDBNull(10)
+                        ? string.Empty : reader.GetString(10)
                 };
                 games.Add(game);
             }
@@ -101,11 +99,9 @@ namespace GameStore.Api.Repositories
                     Publisher = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
                     Developer = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
                     ReleaseDate = reader.IsDBNull(9)
-                    ? null
-                    : DateOnly.FromDateTime(reader.GetDateTime(9)),
-                                    FreeToGameProfileUrl = reader.IsDBNull(10)
-                    ? string.Empty
-                    : reader.GetString(10)
+                        ? null : DateOnly.FromDateTime(reader.GetDateTime(9)),
+                    FreeToGameProfileUrl = reader.IsDBNull(10)
+                        ? string.Empty  : reader.GetString(10)
                 };
                 return game;
             }
@@ -143,8 +139,7 @@ namespace GameStore.Api.Repositories
             command.Parameters.Add("@Developer", SqlDbType.NVarChar, 150).Value = game.Developer ?? string.Empty;
             command.Parameters.Add("@FreeToGameProfileUrl", SqlDbType.NVarChar, 500).Value = game.FreeToGameProfileUrl ?? string.Empty;
             command.Parameters.Add("@ReleaseDate", SqlDbType.Date).Value = game.ReleaseDate.HasValue
-                    ? game.ReleaseDate.Value.ToDateTime(TimeOnly.MinValue)
-                    : DBNull.Value;
+                    ? game.ReleaseDate.Value.ToDateTime(TimeOnly.MinValue) : DBNull.Value;
 
             await command.ExecuteNonQueryAsync();
         }
@@ -165,7 +160,9 @@ namespace GameStore.Api.Repositories
                 (@Id, @Title, @Thumbnail, @ShortDescription, @GameUrl, @Genre, @Platform, @Publisher, @Developer, @ReleaseDate, @FreeToGameProfileUrl)
             END";
 
-            using var command = new SqlCommand(sql, connection);
+            using var transcation = connection.BeginTransaction();
+
+            using var command = new SqlCommand(sql, connection, transcation);
 
             command.Parameters.Add("@Id", SqlDbType.Int);
             command.Parameters.Add("@Title", SqlDbType.NVarChar, 200);
@@ -179,23 +176,32 @@ namespace GameStore.Api.Repositories
             command.Parameters.Add("@FreeToGameProfileUrl", SqlDbType.NVarChar, 500);
             command.Parameters.Add("@ReleaseDate", SqlDbType.Date);
 
-            foreach (var game in games)
+            try
             {
-                command.Parameters["@Id"].Value = game.Id;
-                command.Parameters["@Title"].Value = game.Title ?? string.Empty;
-                command.Parameters["@Thumbnail"].Value = game.Thumbnail ?? string.Empty;
-                command.Parameters["@ShortDescription"].Value = game.ShortDescription ?? string.Empty;
-                command.Parameters["@GameUrl"].Value = game.GameUrl ?? string.Empty;
-                command.Parameters["@Genre"].Value = game.Genre ?? string.Empty;
-                command.Parameters["@Platform"].Value = game.Platform ?? string.Empty;
-                command.Parameters["@Publisher"].Value = game.Publisher ?? string.Empty;
-                command.Parameters["@Developer"].Value = game.Developer ?? string.Empty;
-                command.Parameters["@FreeToGameProfileUrl"].Value = game.FreeToGameProfileUrl ?? string.Empty;
-                command.Parameters["@ReleaseDate"].Value = game.ReleaseDate.HasValue
-                    ? game.ReleaseDate.Value.ToDateTime(TimeOnly.MinValue)
-                    : DBNull.Value;
+                foreach (var game in games)
+                {
+                    command.Parameters["@Id"].Value = game.Id;
+                    command.Parameters["@Title"].Value = game.Title ?? string.Empty;
+                    command.Parameters["@Thumbnail"].Value = game.Thumbnail ?? string.Empty;
+                    command.Parameters["@ShortDescription"].Value = game.ShortDescription ?? string.Empty;
+                    command.Parameters["@GameUrl"].Value = game.GameUrl ?? string.Empty;
+                    command.Parameters["@Genre"].Value = game.Genre ?? string.Empty;
+                    command.Parameters["@Platform"].Value = game.Platform ?? string.Empty;
+                    command.Parameters["@Publisher"].Value = game.Publisher ?? string.Empty;
+                    command.Parameters["@Developer"].Value = game.Developer ?? string.Empty;
+                    command.Parameters["@FreeToGameProfileUrl"].Value = game.FreeToGameProfileUrl ?? string.Empty;
+                    command.Parameters["@ReleaseDate"].Value = game.ReleaseDate.HasValue
+                        ? game.ReleaseDate.Value.ToDateTime(TimeOnly.MinValue)
+                        : DBNull.Value;
 
-                await command.ExecuteNonQueryAsync();
+                    await command.ExecuteNonQueryAsync();
+                }
+                await transcation.CommitAsync();
+            }
+            catch
+            {
+                await transcation.RollbackAsync();
+                throw;
             }
 
         }
